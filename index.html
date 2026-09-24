@@ -105,6 +105,80 @@
   #copied { display: none; color: var(--ok); font-size: 13px; margin-left: 4px; }
   .hint { margin-top: 8px; font-size: 13px; color: var(--muted); }
   code { background: #eef1f6; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .table-toolbar input[type="search"] {
+    flex: 1;
+    min-width: 160px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .table-toolbar input[type="search"]:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .table-toolbar select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    background: var(--panel);
+  }
+  .table-wrap {
+    max-height: 340px;
+    min-height: 120px;
+    resize: vertical;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  table.kv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .kv-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #eef1f6;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .kv-table tbody td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #eef1f6;
+    vertical-align: top;
+    font-family: ui-monospace, SFMono-Regular, Consolas, Menlo, monospace;
+    word-break: break-all;
+  }
+  .kv-table tbody tr:hover { background: #f4f6fa; }
+  .kv-table mark {
+    background: #fde68a;
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .kv-table td.cell { position: relative; }
+  .kv-table td.cell > span { display: block; padding-right: 52px; }
+  .kv-table td.key-cell { color: var(--accent-dark); font-weight: 600; width: 40%; }
+  button.cell-copy {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: inherit;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--panel);
+    color: var(--muted);
+    cursor: pointer;
+    visibility: hidden;
+  }
+  .kv-table tr:hover button.cell-copy,
+  button.cell-copy:focus-visible { visibility: visible; }
+  button.cell-copy:hover { border-color: var(--accent); color: var(--accent); }
+  button.cell-copy.done { border-color: var(--ok); color: var(--ok); }
+  #tableEmpty { color: var(--muted); font-size: 13px; }
 </style>
 </head>
 <body>
@@ -142,6 +216,30 @@
       <span id="copied">Copied!</span>
     </div>
     <div id="error"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Key / Value Table</h2>
+    <div class="table-toolbar">
+      <input type="search" id="tableSearch" placeholder="Search key or value…">
+      <select id="tableField">
+        <option value="both" selected>All</option>
+        <option value="key">Key</option>
+        <option value="value">Value</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table class="kv-table">
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <p class="hint" id="tableEmpty"></p>
   </div>
 </div>
 
@@ -201,7 +299,81 @@
       return;
     }
     hideError();
-    outputEl.value = convert(json, getDelim(), getKvSep());
+    const str = convert(json, getDelim(), getKvSep());
+    outputEl.value = str;
+    buildTable(json, getDelim(), getKvSep());
+  }
+
+  function buildRows(json, delim, kvsep) {
+    if (Array.isArray(json)) {
+      return json.map((el, i) => {
+        if (typeof el === 'string' && el.includes(kvsep)) {
+          const idx = el.indexOf(kvsep);
+          return { key: el.slice(0, idx), value: el.slice(idx + kvsep.length) };
+        }
+        if (typeof el === 'string') return { key: '', value: el };
+        return { key: '', value: serializeValue(el, delim, kvsep) };
+      });
+    }
+    if (typeof json === 'object' && json !== null) {
+      return Object.entries(json).map(([k, v]) => ({ key: k, value: serializeValue(v, delim, kvsep) }));
+    }
+    return [{ key: '', value: String(json) }];
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  let rowData = [];
+
+  function buildTable(json, delim, kvsep) {
+    rowData = buildRows(json, delim, kvsep);
+    renderTable();
+  }
+
+  function filteredRows() {
+    const term = document.getElementById('tableSearch').value.trim().toLowerCase();
+    const field = document.getElementById('tableField').value;
+    const all = rowData.map((r, i) => ({ r, i }));
+    if (!term) return all;
+    return all.filter(({ r }) => {
+      const k = r.key.toLowerCase();
+      const v = r.value.toLowerCase();
+      return field === 'key' ? k.includes(term) : field === 'value' ? v.includes(term) : k.includes(term) || v.includes(term);
+    });
+  }
+
+  function renderTable() {
+    const rows = filteredRows();
+    const tbody = document.getElementById('tableBody');
+    if (!rows.length) {
+      tbody.innerHTML = '';
+      document.getElementById('tableEmpty').textContent =
+        rowData.length ? 'No matching rows.' : 'Enter JSON above to see key/value rows.';
+      return;
+    }
+    document.getElementById('tableEmpty').textContent = '';
+    const term = document.getElementById('tableSearch').value.trim();
+    const field = document.getElementById('tableField').value;
+    tbody.innerHTML = rows.map(({ r, i }) =>
+      '<tr>' +
+        '<td class="key-cell cell"><span>' + cellHtml(r.key, term, field !== 'value') + '</span>' +
+          '<button type="button" class="cell-copy" data-copy="key" data-i="' + i + '">copy</button></td>' +
+        '<td class="cell"><span>' + cellHtml(r.value, term, field !== 'key') + '</span>' +
+          '<button type="button" class="cell-copy" data-copy="value" data-i="' + i + '">copy</button></td>' +
+      '</tr>'
+    ).join('');
+  }
+
+  function cellHtml(text, term, highlight) {
+    const escaped = escapeHtml(text);
+    if (!highlight || !term) return escaped;
+    const escTerm = escapeHtml(term);
+    const re = new RegExp('(' + escTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    return escaped.replace(re, '<mark>$1</mark>');
   }
 
   function kvsepDisabled() {
@@ -233,6 +405,37 @@
   inputEl.addEventListener('input', run);
   document.getElementById('delim').addEventListener('input', run);
   document.getElementById('kvsep').addEventListener('input', run);
+  document.getElementById('tableSearch').addEventListener('input', renderTable);
+  document.getElementById('tableField').addEventListener('change', renderTable);
+
+  document.getElementById('tableBody').addEventListener('click', (e) => {
+    const btn = e.target.closest('button.cell-copy');
+    if (!btn) return;
+    const row = rowData[Number(btn.dataset.i)];
+    if (!row) return;
+    const text = btn.dataset.copy === 'key' ? row.key : row.value;
+    const done = () => {
+      btn.classList.add('done');
+      btn.textContent = '\u2713';
+      setTimeout(() => {
+        btn.classList.remove('done');
+        btn.textContent = 'copy';
+      }, 1200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(done);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      done();
+    }
+  });
 
   document.getElementById('copy').addEventListener('click', () => {
     if (!outputEl.value) return;
