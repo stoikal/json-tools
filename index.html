@@ -246,7 +246,6 @@
       </div>
       <textarea id="output" readonly placeholder="Result appears here…" spellcheck="false"></textarea>
       <div class="actions">
-        <button class="primary" id="convert">Convert</button>
         <button class="secondary" id="copy">Copy</button>
         <button class="secondary" id="download">Download</button>
         <span id="copied">Copied!</span>
@@ -444,7 +443,6 @@
     fileInput.value = '';
   });
 
-  document.getElementById('convert').addEventListener('click', run);
   inputEl.addEventListener('input', run);
   document.getElementById('delim').addEventListener('input', run);
   document.getElementById('kvsep').addEventListener('input', run);
