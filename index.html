@@ -6,41 +6,63 @@
 <title>JSON to KV String</title>
 <style>
   :root {
-    --bg: #f6f7f9;
+    --bg: #f0f0f0;
     --panel: #ffffff;
-    --border: #d8dce3;
-    --text: #1f2430;
-    --muted: #6b7280;
-    --accent: #2563eb;
-    --accent-dark: #1d4ed8;
-    --error: #dc2626;
-    --ok: #16a34a;
+    --raised: #ffffff;
+    --border: #111111;
+    --text: #111111;
+    --muted: #555555;
+    --accent: #ffd400;
+    --accent-dark: #111111;
+    --error: #e03131;
+    --ok: #1b7a2c;
+    --mark: #ffeb3b;
+    --head-bg: #111111;
+    --row-hover: #fff88f;
+    --dim-bg: #e6e6e6;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
     background: var(--bg);
     color: var(--text);
   }
   .container {
     max-width: 860px;
     margin: 0 auto;
-    padding: 32px 20px 64px;
+    padding: 28px 20px 60px;
   }
-  header { margin-bottom: 24px; }
-  footer { margin-top: 12px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center; }
-  footer p { margin: 0; }
-  h1 { font-size: 24px; margin: 0 0 6px; }
-  p.sub { margin: 0; color: var(--muted); font-size: 14px; }
+  header { margin-bottom: 22px; }
+  footer { margin-top: 14px; padding-top: 12px; border-top: 3px solid var(--border); text-align: center; }
+  footer p { margin: 0; font-size: 13px; font-weight: bold; }
+  h1 {
+    display: inline-block;
+    margin: 0;
+    padding: 6px 14px;
+    background: var(--text);
+    color: #fff;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
   .panel {
     background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
+    border: 3px solid var(--border);
+    padding: 0;
+    margin-bottom: 22px;
   }
-  .panel h2 { margin: 0 0 12px; font-size: 15px; }
+  .panel h2 {
+    margin: 0;
+    padding: 8px 14px;
+    background: var(--head-bg);
+    color: #fff;
+    border-bottom: 3px solid var(--border);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .panel-body { padding: 16px 16px 18px; }
   .toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -52,134 +74,143 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--panel);
+    padding: 9px 14px;
+    border: 2px solid var(--border);
+    background: var(--raised);
     cursor: pointer;
     font-size: 14px;
+    font-weight: bold;
   }
-  label.file-btn:hover { border-color: var(--accent); }
+  label.file-btn:hover { background: var(--accent); }
+  label.file-btn:focus-within { outline: 2px solid var(--text); outline-offset: 2px; }
   #fileInput { display: none; }
-  .delim-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; }
-  .delim-row label { font-weight: 600; }
+  .delim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; }
+  .delim-row label { font-weight: bold; }
   .delim-row input {
     width: 48px;
     padding: 6px 8px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-family: ui-monospace, SFMono-Regular, Consolas, Menlo, monospace;
+    border: 2px solid var(--border);
+    background: var(--raised);
+    font-family: "Courier New", ui-monospace, monospace;
+    font-size: 14px;
     text-align: center;
   }
-  .delim-row input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
-  .delim-row input:disabled { background: #eef1f6; color: var(--muted); cursor: not-allowed; }
+  .delim-row input:focus { outline: 2px solid var(--text); outline-offset: 1px; }
+  .delim-row input:disabled { background: var(--dim-bg); color: var(--muted); cursor: not-allowed; }
   .delim-row .sub { color: var(--muted); font-size: 13px; }
   textarea {
     width: 100%;
     min-height: 180px;
     padding: 12px;
-    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 13px;
     line-height: 1.5;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    border: 2px solid var(--border);
     resize: vertical;
-    background: #fbfbfd;
+    background: var(--raised);
     color: var(--text);
   }
-  textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
-  #output { background: #fbfbfd; }
+  textarea:focus { outline: 2px solid var(--text); outline-offset: 1px; }
+  #output { background: var(--raised); }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
   button {
-    padding: 9px 18px;
-    border: none;
-    border-radius: 6px;
+    padding: 10px 18px;
+    border: 2px solid var(--border);
+    border-radius: 0;
+    font-family: inherit;
     font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
   }
-  button.primary { background: var(--accent); color: #fff; }
-  button.primary:hover { background: var(--accent-dark); }
-  button.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
-  button.secondary:hover { border-color: var(--accent); color: var(--accent); }
+  button:active { transform: translate(2px, 2px); }
+  button.primary { background: var(--text); color: #fff; }
+  button.primary:hover { background: var(--accent); color: var(--text); }
+  button.secondary { background: var(--raised); color: var(--text); }
+  button.secondary:hover { background: var(--accent); }
   #filename { font-size: 13px; color: var(--muted); }
-  #error { display: none; margin-top: 10px; color: var(--error); font-size: 13px; }
+  #error { display: none; margin-top: 10px; color: var(--error); font-size: 13px; font-weight: bold; }
   #error.visible { display: block; }
-  #copied { display: none; color: var(--ok); font-size: 13px; margin-left: 4px; }
-  .hint { margin-top: 8px; font-size: 13px; color: var(--muted); }
-  code { background: #eef1f6; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  #copied { display: none; color: var(--ok); font-size: 13px; margin-left: 4px; font-weight: bold; }
+  .hint { margin-top: 10px; font-size: 13px; color: var(--muted); }
+  code { background: var(--dim-bg); border: 1px solid var(--border); padding: 1px 4px; font-family: inherit; font-size: 12px; }
   .table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
   .table-toolbar input[type="search"] {
     flex: 1;
     min-width: 160px;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    padding: 9px 10px;
+    border: 2px solid var(--border);
+    background: var(--raised);
+    font-family: "Courier New", ui-monospace, monospace;
     font-size: 13px;
   }
-  .table-toolbar input[type="search"]:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .table-toolbar input[type="search"]:focus { outline: 2px solid var(--text); outline-offset: 1px; }
   .table-toolbar select {
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    padding: 9px 10px;
+    border: 2px solid var(--border);
+    border-radius: 0;
+    background: var(--raised);
+    font-family: inherit;
     font-size: 13px;
-    background: var(--panel);
+    font-weight: bold;
   }
   .table-wrap {
     max-height: 340px;
     min-height: 120px;
     resize: vertical;
     overflow: auto;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    border: 2px solid var(--border);
+    background: var(--raised);
   }
   table.kv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .kv-table thead th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: #eef1f6;
+    background: var(--head-bg);
+    color: #fff;
     text-align: left;
     padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--border);
     font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.08em;
   }
   .kv-table tbody td {
     padding: 6px 10px;
-    border-bottom: 1px solid #eef1f6;
+    border-bottom: 1px solid var(--border);
     vertical-align: top;
-    font-family: ui-monospace, SFMono-Regular, Consolas, Menlo, monospace;
+    font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, monospace;
     word-break: break-all;
   }
-  .kv-table tbody tr:hover { background: #f4f6fa; }
+  .kv-table tbody tr:last-child td { border-bottom: none; }
+  .kv-table tbody tr:hover { background: var(--row-hover); }
   .kv-table mark {
-    background: #fde68a;
-    color: inherit;
-    border-radius: 2px;
+    background: var(--mark);
+    color: var(--text);
     padding: 0 1px;
+    border-bottom: 2px solid var(--text);
   }
   .kv-table td.cell { position: relative; }
   .kv-table td.cell > span { display: block; padding-right: 52px; }
-  .kv-table td.key-cell { color: var(--accent-dark); font-weight: 600; width: 40%; }
+  .kv-table td.key-cell { color: var(--text); font-weight: 700; width: 40%; }
   button.cell-copy {
     position: absolute;
     top: 6px;
     right: 8px;
-    padding: 2px 8px;
+    padding: 3px 8px;
     font-size: 11px;
     font-family: inherit;
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    border: 2px solid var(--border);
+    border-radius: 0;
     background: var(--panel);
-    color: var(--muted);
+    color: var(--text);
     cursor: pointer;
     visibility: hidden;
   }
   .kv-table tr:hover button.cell-copy,
   button.cell-copy:focus-visible { visibility: visible; }
-  button.cell-copy:hover { border-color: var(--accent); color: var(--accent); }
-  button.cell-copy.done { border-color: var(--ok); color: var(--ok); }
+  button.cell-copy:hover { background: var(--accent); }
+  button.cell-copy.done { background: var(--ok); color: #fff; border-color: var(--text); }
   #tableEmpty { color: var(--muted); font-size: 13px; }
 </style>
 </head>
@@ -191,57 +222,63 @@
 
   <div class="panel">
     <h2>Input</h2>
-    <div class="toolbar">
-      <input type="file" id="fileInput" accept=".json,.txt">
-      <label class="file-btn" for="fileInput">&#128194; Choose .json / .txt</label>
-      <span id="filename"></span>
+    <div class="panel-body">
+      <div class="toolbar">
+        <input type="file" id="fileInput" accept=".json,.txt">
+        <label class="file-btn" for="fileInput">&#128194; Choose .json / .txt</label>
+        <span id="filename"></span>
+      </div>
+      <textarea id="input" placeholder='{"key": "value", "key2": "value2"}' spellcheck="false"></textarea>
+      <p class="hint">Accepts a JSON object <code>{"a":"1"}</code> or an array of strings <code>["a=1","b=2"]</code> / <code>["a","b"]</code>. Nested objects become <code>{n=q;m=r}</code>.</p>
     </div>
-    <textarea id="input" placeholder='{"key": "value", "key2": "value2"}' spellcheck="false"></textarea>
-    <p class="hint">Accepts a JSON object <code>{"a":"1"}</code> or an array of strings <code>["a=1","b=2"]</code> / <code>["a","b"]</code>. Nested objects become <code>{n=q;m=r}</code>.</p>
   </div>
 
   <div class="panel">
     <h2>Output</h2>
-    <div class="delim-row">
-      <label for="delim">Delimiter:</label>
-      <input type="text" id="delim" value=";" size="4" placeholder=";">
-      <span class="sub">between pairs</span>
-      <label for="kvsep">Key/value sep:</label>
-      <input type="text" id="kvsep" value="=" size="4" placeholder="=">
-      <span class="sub">between key and value</span>
+    <div class="panel-body">
+      <div class="delim-row">
+        <label for="delim">Delimiter:</label>
+        <input type="text" id="delim" value=";" size="4" placeholder=";">
+        <span class="sub">between pairs</span>
+        <label for="kvsep">Key/value sep:</label>
+        <input type="text" id="kvsep" value="=" size="4" placeholder="=">
+        <span class="sub">between key and value</span>
+      </div>
+      <textarea id="output" readonly placeholder="Result appears here…" spellcheck="false"></textarea>
+      <div class="actions">
+        <button class="primary" id="convert">Convert</button>
+        <button class="secondary" id="copy">Copy</button>
+        <button class="secondary" id="download">Download</button>
+        <span id="copied">Copied!</span>
+      </div>
+      <div id="error"></div>
     </div>
-    <textarea id="output" readonly placeholder="Result appears here…" spellcheck="false"></textarea>
-    <div class="actions">
-      <button class="primary" id="convert">Convert</button>
-      <button class="secondary" id="copy">Copy</button>
-      <button class="secondary" id="download">Download</button>
-      <span id="copied">Copied!</span>
-    </div>
-    <div id="error"></div>
   </div>
 
   <div class="panel">
     <h2>Key / Value Table</h2>
-    <div class="table-toolbar">
-      <input type="search" id="tableSearch" placeholder="Search key or value…">
-      <select id="tableField">
-        <option value="both" selected>All</option>
-        <option value="key">Key</option>
-        <option value="value">Value</option>
-      </select>
+    <div class="panel-body">
+      <div class="table-toolbar">
+        <input type="search" id="tableSearch" placeholder="Search key or value…">
+        <select id="tableField">
+          <option value="both" selected>All</option>
+          <option value="key">Key</option>
+          <option value="value">Value</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table class="kv-table">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <p class="hint" id="tableEmpty"></p>
     </div>
-    <div class="table-wrap">
-      <table class="kv-table">
-        <thead>
-          <tr>
-            <th>Key</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-    <p class="hint" id="tableEmpty"></p>
   </div>
 
   <footer>
