@@ -82,7 +82,7 @@
     font-weight: bold;
   }
   label.file-btn:hover { background: var(--accent); }
-  label.file-btn:focus-within { outline: 2px solid var(--text); outline-offset: 2px; }
+  label.file-btn:focus-within { outline: 2px dotted var(--text); outline-offset: 0px; }
   #fileInput { display: none; }
   .delim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; }
   .delim-row label { font-weight: bold; }
@@ -95,7 +95,7 @@
     font-size: 14px;
     text-align: center;
   }
-  .delim-row input:focus { outline: 2px solid var(--text); outline-offset: 1px; }
+  .delim-row input:focus { outline: 2px dotted var(--text); outline-offset: 0px; }
   .delim-row input:disabled { background: var(--dim-bg); color: var(--muted); cursor: not-allowed; }
   .delim-row .sub { color: var(--muted); font-size: 13px; }
   textarea {
@@ -110,7 +110,7 @@
     background: var(--raised);
     color: var(--text);
   }
-  textarea:focus { outline: 2px solid var(--text); outline-offset: 1px; }
+  textarea:focus { outline: 2px dotted var(--text); outline-offset: 0px; }
   #output { background: var(--raised); }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
   button {
@@ -143,7 +143,7 @@
     font-family: "Courier New", ui-monospace, monospace;
     font-size: 13px;
   }
-  .table-toolbar input[type="search"]:focus { outline: 2px solid var(--text); outline-offset: 1px; }
+  .table-toolbar input[type="search"]:focus { outline: 2px dotted var(--text); outline-offset: 0px; }
   .table-toolbar select {
     padding: 9px 10px;
     border: 2px solid var(--border);
@@ -154,7 +154,6 @@
     font-weight: bold;
   }
   .table-wrap {
-    max-height: 340px;
     min-height: 120px;
     resize: vertical;
     overflow: auto;
